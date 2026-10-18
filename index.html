@@ -1,1 +1,32 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chetan Arts</title>
+</head>
+<body style="font-family:Arial;text-align:center;background:#f4f4f4;padding:30px">
+<h1>Chetan Arts</h1>
+<p>Photo Gallery</p>
+<div id="gallery">Loading photos...</div>
+<script>
+fetch('./gallery.json')
+.then(r => r.json())
+.then(photos => {
+ const g = document.getElementById('gallery');
+ g.innerHTML = '';
+ photos.forEach(p => {
+  const img = document.createElement('img');
+  img.src = p.url;
+  img.style.cssText = 'width:45%;margin:5px;border-radius:8px';
+  g.appendChild(img);
+ });
+})
+.catch(() => {
+ document.getElementById('gallery').textContent = 'Gallery load error';
+});
+</script>
+</body>
+</html>
+
