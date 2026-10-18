@@ -235,6 +235,85 @@ document.addEventListener('keydown', event => {
 });
 
 loadGallery();
+
+const API_BASE = "https://chetan-arts-api.aryanjethava7.workers.dev";
+let adminToken = null;
+
+const msg = document.getElementById("adminMessage");
+const panel = document.getElementById("uploadPanel");
+
+document.getElementById("loginButton").onclick = async () => {
+  msg.textContent = "Login થઈ રહ્યું છે...";
+  try {
+    const r = await fetch(API_BASE + "/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: document.getElementById("adminEmail").value,
+        password: document.getElementById("adminPassword").value
+      })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Login નિષ્ફળ થયું");
+
+    adminToken = data.token;
+    panel.hidden = false;
+    document.getElementById("adminPassword").value = "";
+    msg.textContent = "Login સફળ થયું!";
+  } catch (e) {
+    msg.textContent = "ભૂલ: " + e.message;
+  }
+};
+
+document.getElementById("uploadButton").onclick = async () => {
+  const file = document.getElementById("photoFile").files[0];
+  if (!adminToken) {
+    msg.textContent = "પહેલાં Login કરો.";
+    return;
+  }
+  if (!file) {
+    msg.textContent = "પહેલાં ફોટો પસંદ કરો.";
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    msg.textContent = "ફોટો 5 MBથી નાનો હોવો જોઈએ.";
+    return;
+  }
+
+  msg.textContent = "ફોટો અપલોડ થઈ રહ્યો છે...";
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const r = await fetch(API_BASE + "/api/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + adminToken
+      },
+      body: JSON.stringify({ contentType: file.type, base64 })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Upload નિષ્ફળ થયું");
+
+    msg.textContent = "ફોટો સફળતાપૂર્વક અપલોડ થયો!";
+    document.getElementById("photoFile").value = "";
+    if (typeof loadGallery === "function") await loadGallery();
+  } catch (e) {
+    msg.textContent = "ભૂલ: " + e.message;
+  }
+};
+
+document.getElementById("logoutButton").onclick = () => {
+  adminToken = null;
+  panel.hidden = true;
+  msg.textContent = "Logout થયું.";
+};
+
 </script>
 </body>
 </html>
