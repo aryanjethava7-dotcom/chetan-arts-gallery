@@ -1,32 +1,213 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="gu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chetan Arts</title>
+<meta name="theme-color" content="#171717">
+<title>Chetan Arts Gallery</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f3f3;
+  color: #222;
+}
+
+header {
+  background: #171717;
+  color: white;
+  text-align: center;
+  padding: 22px 12px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 27px;
+  letter-spacing: 1px;
+}
+
+header p {
+  margin: 7px 0 0;
+  color: #ddd;
+  font-size: 14px;
+}
+
+#status {
+  text-align: center;
+  padding: 16px 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+#gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.photo-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 7px #00000018;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  cursor: pointer;
+  background: #ddd;
+}
+
+.photo-name {
+  padding: 9px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  color: #444;
+}
+
+#viewer {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  background: rgba(0,0,0,.96);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#large {
+  max-width: 100%;
+  max-height: 88vh;
+  object-fit: contain;
+}
+
+#close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  border: 0;
+  color: white;
+  background: transparent;
+  font-size: 38px;
+  cursor: pointer;
+}
+
+footer {
+  padding: 18px;
+  text-align: center;
+  color: #777;
+  font-size: 12px;
+}
+
+@media (min-width: 700px) {
+  #gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+}
+</style>
 </head>
-<body style="font-family:Arial;text-align:center;background:#f4f4f4;padding:30px">
-<h1>Chetan Arts</h1>
-<p>Photo Gallery</p>
-<div id="gallery">Loading photos...</div>
+
+<body>
+<header>
+  <h1>Chetan Arts</h1>
+  <p>Creative Designs • Photo Gallery</p>
+</header>
+
+<div id="status">ફોટા લોડ થઈ રહ્યા છે...</div>
+<main id="gallery"></main>
+
+<div id="viewer" role="dialog" aria-label="મોટો ફોટો">
+  <button id="close" aria-label="બંધ કરો">&times;</button>
+  <img id="large" alt="Chetan Arts Photo">
+</div>
+
+<footer>Chetan Arts Gallery</footer>
+
 <script>
-fetch('./gallery.json')
-.then(r => r.json())
-.then(photos => {
- const g = document.getElementById('gallery');
- g.innerHTML = '';
- photos.forEach(p => {
-  const img = document.createElement('img');
-  img.src = p.url;
-  img.style.cssText = 'width:45%;margin:5px;border-radius:8px';
-  g.appendChild(img);
- });
-})
-.catch(() => {
- document.getElementById('gallery').textContent = 'Gallery load error';
+const gallery = document.getElementById('gallery');
+const status = document.getElementById('status');
+const viewer = document.getElementById('viewer');
+const large = document.getElementById('large');
+
+async function loadGallery() {
+  try {
+    const response = await fetch('./gallery.json');
+    if (!response.ok) throw new Error('Gallery file not found');
+
+    const photos = await response.json();
+    gallery.replaceChildren();
+
+    let count = 0;
+
+    photos.forEach(photo => {
+      if (!photo.url) return;
+
+      const card = document.createElement('article');
+      card.className = 'photo-card';
+
+      const img = document.createElement('img');
+      img.className = 'photo';
+      img.src = photo.url;
+      img.alt = photo.name || 'Chetan Arts photo';
+      img.loading = 'lazy';
+
+      img.onerror = () => {
+        card.remove();
+        count--;
+        status.textContent = count + ' ફોટા';
+      };
+
+      img.onclick = () => {
+        large.src = photo.url;
+        viewer.style.display = 'flex';
+      };
+
+      const name = document.createElement('div');
+      name.className = 'photo-name';
+      name.textContent = photo.name || 'Chetan Arts';
+
+      card.append(img, name);
+      gallery.appendChild(card);
+      count++;
+    });
+
+    status.textContent = count
+      ? count + ' ફોટા ઉપલબ્ધ'
+      : 'હજુ કોઈ ફોટો ઉપલબ્ધ નથી';
+  } catch (error) {
+    status.textContent = 'ફોટા લોડ થયા નથી. ઇન્ટરનેટ તપાસો.';
+  }
+}
+
+function closeViewer() {
+  viewer.style.display = 'none';
+  large.src = '';
+}
+
+document.getElementById('close').onclick = closeViewer;
+
+viewer.onclick = event => {
+  if (event.target === viewer) closeViewer();
+};
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeViewer();
 });
+
+loadGallery();
 </script>
 </body>
 </html>
-
