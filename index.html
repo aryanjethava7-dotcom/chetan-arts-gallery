@@ -132,6 +132,23 @@ footer {
 
 <body>
 <header>
+  
+<section id="admin" style="max-width:500px;margin:20px auto;padding:16px;background:white;border-radius:12px;color:#111">
+  <h2>Admin Login</h2>
+  <label for="adminEmail">Admin Email</label>
+  <input id="adminEmail" type="email" placeholder="Admin email" style="display:block;width:95%;padding:10px;margin:8px 0">
+  <label for="adminPassword">Password</label>
+  <input id="adminPassword" type="password" placeholder="Password" style="display:block;width:95%;padding:10px;margin:8px 0">
+  <button id="loginButton">Admin Login</button>
+  <div id="uploadPanel" hidden>
+    <h3>Photo Upload</h3>
+    <input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+    <button id="uploadButton">Upload Photo</button>
+    <button id="logoutButton">Logout</button>
+  </div>
+  <p id="adminMessage"></p>
+</section>
+
   <h1>Chetan Arts</h1>
   <p>Creative Designs • Photo Gallery</p>
 </header>
