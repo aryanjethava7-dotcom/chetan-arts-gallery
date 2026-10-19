@@ -449,7 +449,46 @@ function renderGallery() {
     category.textContent = "Chetan Arts • " + getCategory(photo);
 
     wrap.append(img, label);
-    card.append(wrap, name, category);
+    card.append(wrap, name, category);    if (adminToken && photo.filename) {
+      const actions = document.createElement("div");
+      actions.style.padding = "0 12px 12px";
+
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "🗑 Delete Photo";
+      deleteButton.style.cssText =
+        "width:100%;padding:10px;background:#b42318;color:white;border:0;border-radius:8px;font-weight:bold;";
+
+      deleteButton.onclick = async () => {
+        if (!confirm("શું તમે આ ફોટો કાયમ માટે ડિલીટ કરવા માંગો છો?")) return;
+
+        deleteButton.disabled = true;
+        deleteButton.textContent = "Deleting...";
+
+        try {
+          const response = await fetch(API_BASE + "/api/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + adminToken
+            },
+            body: JSON.stringify({ filename: photo.filename })
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Delete નિષ્ફળ થયું");
+
+          msg.textContent = "ફોટો ડિલીટ થઈ ગયો.";
+          await loadGallery();
+        } catch (error) {
+          msg.textContent = "Delete ભૂલ: " + error.message;
+          deleteButton.disabled = false;
+          deleteButton.textContent = "🗑 Delete Photo";
+        }
+      };
+
+      actions.appendChild(deleteButton);
+      card.appendChild(actions);
+    }
     gallery.appendChild(card);
   });
 
@@ -517,6 +556,7 @@ document.getElementById("loginButton").onclick = async () => {
     panel.hidden = false;
     document.getElementById("adminPassword").value = "";
     msg.textContent = "Login સફળ થયું!";
+    renderGallery();
   } catch (error) {
     msg.textContent = "Login ભૂલ: " + error.message;
   }
@@ -574,6 +614,7 @@ document.getElementById("uploadButton").onclick = async () => {
 
 document.getElementById("logoutButton").onclick = () => {
   adminToken = null;
+  renderGallery();
   panel.hidden = true;
   document.getElementById("photoFile").value = "";
   msg.textContent = "Logout થયું.";
