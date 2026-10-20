@@ -365,6 +365,8 @@ footer strong { color: white; }
 <div id="viewer" role="dialog" aria-label="મોટો ફોટો" aria-modal="true">
   <button id="close" aria-label="બંધ કરો" type="button">&times;</button>
   <img id="large" alt="Chetan Arts Photo">
+  <button id="prevPhoto" type="button" aria-label="પાછળનો ફોટો">❮</button>
+<button id="nextPhoto" type="button" aria-label="આગળનો ફોટો">❯</button>
 </div>
 
 <script>
@@ -372,6 +374,40 @@ const gallery = document.getElementById("gallery");
 const status = document.getElementById("status");
 const viewer = document.getElementById("viewer");
 const large = document.getElementById("large");
+  let currentPhotoIndex = 0;
+
+function showPhoto(index) {
+  const photos = allPhotos.filter(photo => photo.url);
+  if (!photos.length) return;
+
+  currentPhotoIndex = (index + photos.length) % photos.length;
+  large.src = photos[currentPhotoIndex].url;
+}
+
+document.getElementById("prevPhoto").onclick = () => {
+  showPhoto(currentPhotoIndex - 1);
+};
+
+document.getElementById("nextPhoto").onclick = () => {
+  showPhoto(currentPhotoIndex + 1);
+};
+  let currentPhotoIndex = 0;
+
+function showPhoto(index) {
+  const photos = allPhotos.filter(photo => photo.url);
+  if (!photos.length) return;
+
+  currentPhotoIndex = (index + photos.length) % photos.length;
+  large.src = photos[currentPhotoIndex].url;
+}
+
+document.getElementById("prevPhoto").onclick = () => {
+  showPhoto(currentPhotoIndex - 1);
+};
+
+document.getElementById("nextPhoto").onclick = () => {
+  showPhoto(currentPhotoIndex + 1);
+};
 const searchInput = document.getElementById("searchInput");
 const API_BASE = "https://chetan-arts-api.aryanjethava7.workers.dev";
 
@@ -435,9 +471,11 @@ function renderGallery() {
       card.remove();
     };
     img.onclick = () => {
-      large.src = photo.url;
-      viewer.style.display = "flex";
-    };
+  const photos = allPhotos.filter(p => p.url);
+  currentPhotoIndex = photos.findIndex(p => p.url === photo.url);
+  showPhoto(currentPhotoIndex);
+  viewer.style.display = "flex";
+};
 
     const label = document.createElement("span");
     label.className = "photo-label";
@@ -538,7 +576,25 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeViewer();
 });
 
-const msg = document.getElementById("adminMessage");
+let touchStartX = 0;
+
+viewer.addEventListener("touchstart", event => {
+  touchStartX = event.changedTouches[0].screenX;
+}, { passive: true });
+
+viewer.addEventListener("touchend", event => {
+  const touchEndX = event.changedTouches[0].screenX;
+  const difference = touchEndX - touchStartX;
+
+  if (Math.abs(difference) < 50) return;
+
+  if (difference < 0) {
+    showPhoto(currentPhotoIndex + 1);
+  } else {
+    showPhoto(currentPhotoIndex - 1);
+  }
+}, { passive: true });
+  const msg = document.getElementById("adminMessage");
 const panel = document.getElementById("uploadPanel");
 
 document.getElementById("loginButton").onclick = async () => {
